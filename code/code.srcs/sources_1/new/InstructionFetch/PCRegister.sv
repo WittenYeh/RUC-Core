@@ -1,4 +1,4 @@
-`include "IF_PHASE_CONFIG.vh"
+`include "IFPhaseConfig.svh"
 
 module PCRegister(
     input wire reset,
@@ -10,7 +10,7 @@ module PCRegister(
 
 reg [`INST_ADDR_WIDTH:0] cur_pc;
 
-assign result = cur_pc;
+assign result = next_pc; // to solve read when writing: write through method
 
 always@(posedge clk) begin
     if (reset) begin 

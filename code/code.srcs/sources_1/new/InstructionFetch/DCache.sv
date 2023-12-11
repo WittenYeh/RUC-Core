@@ -1,5 +1,5 @@
 module DCache (
-    input wire clock,
+    input wire clk,
     input wire reset,
     input wire memRead,
     input wire memWrite,
@@ -20,7 +20,7 @@ reg [31: 0] data [2047: 0];
 assign dmState = data;
 assign readData = data[addr/4];
 
-always @(negedge clock) begin
+always_ff @(negedge clk) begin
     if (reset) begin
         for (i = 0; i < 1024; i=i+1) begin
             data[i] <= 0;

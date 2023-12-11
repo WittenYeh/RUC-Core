@@ -3,4 +3,163 @@
   <component name="ProjectRootManager">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
+  <component name="SVCompilerDirectivesDefines">
+    <option name="define">
+      <map>
+        <entry key="BHT_PC_HASH_WIDTH">
+          <value>
+            <Define>
+              <option name="definitions">
+                <list>
+                  <Body>
+                    <option name="offset" value="81" />
+                    <option name="replacementList" value="8" />
+                    <option name="source" value="IFPhaseConfig.svh" />
+                  </Body>
+                </list>
+              </option>
+            </Define>
+          </value>
+        </entry>
+        <entry key="BTB_TAG_WIDTH">
+          <value>
+            <Define>
+              <option name="definitions">
+                <list>
+                  <Body>
+                    <option name="offset" value="185" />
+                    <option name="replacementList" value="8" />
+                    <option name="source" value="IFPhaseConfig.svh" />
+                  </Body>
+                </list>
+              </option>
+              <option name="dependencies">
+                <set>
+                  <option value="IFPhaseStruct.svh" />
+                </set>
+              </option>
+            </Define>
+          </value>
+        </entry>
+        <entry key="BTB_TYPE_WIDTH">
+          <value>
+            <Define>
+              <option name="definitions">
+                <list>
+                  <Body>
+                    <option name="offset" value="209" />
+                    <option name="replacementList" value="2" />
+                    <option name="source" value="IFPhaseConfig.svh" />
+                  </Body>
+                </list>
+              </option>
+              <option name="dependencies">
+                <set>
+                  <option value="IFPhaseStruct.svh" />
+                </set>
+              </option>
+            </Define>
+          </value>
+        </entry>
+        <entry key="ICACHE_CAPACITY">
+          <value>
+            <Define>
+              <option name="definitions">
+                <list>
+                  <Body>
+                    <option name="offset" value="128" />
+                    <option name="replacementList" value="2048" />
+                    <option name="source" value="IFPhaseConfig.svh" />
+                  </Body>
+                </list>
+              </option>
+            </Define>
+          </value>
+        </entry>
+        <entry key="IF_PHASE_CONFIG">
+          <value>
+            <Define>
+              <option name="definitions">
+                <list>
+                  <Body>
+                    <option name="offset" value="32" />
+                    <option name="source" value="IFPhaseConfig.svh" />
+                  </Body>
+                </list>
+              </option>
+            </Define>
+          </value>
+        </entry>
+        <entry key="IF_PHASE_STRUCT">
+          <value>
+            <Define>
+              <option name="definitions">
+                <list>
+                  <Body>
+                    <option name="offset" value="32" />
+                    <option name="source" value="IFPhaseStruct.svh" />
+                  </Body>
+                </list>
+              </option>
+            </Define>
+          </value>
+        </entry>
+        <entry key="IF_WIDTH">
+          <value>
+            <Define>
+              <option name="definitions">
+                <list>
+                  <Body>
+                    <option name="offset" value="109" />
+                    <option name="replacementList" value="8" />
+                    <option name="source" value="IFPhaseConfig.svh" />
+                  </Body>
+                </list>
+              </option>
+            </Define>
+          </value>
+        </entry>
+        <entry key="INST_ADDR_WIDTH">
+          <value>
+            <Define>
+              <option name="definitions">
+                <list>
+                  <Body>
+                    <option name="offset" value="157" />
+                    <option name="replacementList" value="32" />
+                    <option name="source" value="IFPhaseConfig.svh" />
+                  </Body>
+                </list>
+              </option>
+              <option name="dependencies">
+                <set>
+                  <option value="IFPhaseStruct.svh" />
+                </set>
+              </option>
+            </Define>
+          </value>
+        </entry>
+        <entry key="PATTERN_WIDTH">
+          <value>
+            <Define>
+              <option name="definitions">
+                <list>
+                  <Body>
+                    <option name="offset" value="57" />
+                    <option name="replacementList" value="6" />
+                    <option name="source" value="IFPhaseConfig.svh" />
+                  </Body>
+                </list>
+              </option>
+              <option name="dependencies">
+                <set>
+                  <option value="BranchHistoryTable.sv" />
+                </set>
+              </option>
+            </Define>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
 </project>
