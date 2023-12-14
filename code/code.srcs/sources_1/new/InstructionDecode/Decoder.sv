@@ -17,6 +17,7 @@ always_comb begin
         instruction_info[i].imm26_valid = 1'b0;
         instruction_info[i].slt_trans = 1'b0;
         instruction_info[i].need_log = 1'b0;
+        instruction_info[i].is_direct_branch = 1'b0;
 
         case (instruction[i][31: 26])
             // R type instructions ================================
@@ -111,6 +112,7 @@ always_comb begin
                         instruction_info[i].dest = instruction[i][15:11];
                         instruction_info[i].need_log = instruction[i][0]; // JALR
                         instruction_info[i].issue_type = BRANCH;
+                        instruction_info[i].is_direct_branch = 1'b1;
                     end 
                     // instructions executed with coprocess function unit
                     // MFHI, MTHI, MFLO, MTLO
@@ -280,11 +282,11 @@ always_comb begin
                 instruction_info[i].imm26_valid = 1'b1;
                 instruction_info[i].imm26 = instruction[i][25: 0];
                 instruction_info[i].need_log = instruction[i][26];
+                instruction_info[i].is_direct_branch = 1'b1;
                 instruction_info[i].issue_type = BRANCH;
             end 
         endcase
     end
 end
-
 
 endmodule

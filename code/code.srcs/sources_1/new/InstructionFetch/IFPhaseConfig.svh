@@ -1,7 +1,7 @@
 `ifndef IF_PHASE_CONFIG
 `define IF_PHASE_CONFIG
 
-`define IF_GROUP_SIZE 8
+`define IF_GROUP_SIZE 12 // <31
 `define ICACHE_CAPACITY 2048
 `define INST_ADDR_WIDTH 32
 

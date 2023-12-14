@@ -162,6 +162,7 @@ typedef struct {
     SHIFT_TYPE shift_type;
     logic need_log; // whether a jump instruction need to log its PC+8
     MOVE_TYPE move_type;
+    logic is_direct_branch;
     logic check_exp; // not used now
     COMPARE_TYPE comp_type;
     LOAD_SIZE load_size;
