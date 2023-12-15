@@ -6,6 +6,8 @@ module Decoder(
     output InstructionInfo instruction_info [`MACHINE_WIDTH]
 );
 
+// Decode is completely combine unit
+
 always_comb begin 
     for (int i = 0; i < `MACHINE_WIDTH; i += 1) begin 
         // initialize default value

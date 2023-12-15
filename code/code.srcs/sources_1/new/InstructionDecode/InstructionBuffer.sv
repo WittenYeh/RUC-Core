@@ -1,106 +1,78 @@
 `include "IDPhaseConfig.svh"
 `include "../InstructionFetch/IFPhaseConfig.svh"
 
-module InstructionBuffer(
+module InstructionBuffer #(
+    parameter IB_SIZE = 1000
+) (
     input wire clk,
     input wire reset,
     input wire read_en,
     input wire write_en,
-    input wire inst_valid [`IF_GROUP_SIZE],
-    input wire [`INST_WIDTH-1: 0] inst_in [`IF_GROUP_SIZE],
-    output wire [`INST_WIDTH-1: 0] inst_out [`MACHINE_WIDTH],
+    input wire [`IF_GROUP_SIZE-1: 0] num_valid,
+    input wire [`INST_WIDTH-1: 0] inst_in [`IF_GROUP_SIZE],  
+    output wire [`INST_WIDTH-1: 0] inst_out [`MACHINE_WIDTH],  
     output wire almost_full,
     output wire almost_empty
 );
 
+// buffer size: 2^{10} = 1024, actually use: 1000
+
 // a multi port FIFO is very ineffictive, use multi single port FIFO to replayce it
+reg [`INST_WIDTH-1: 0] reg_inst_out [`MACHINE_WIDTH]; 
 
-reg [`INST_WIDTH-1: 0] inst_buffer [`IB_SIZE];
+reg [`IB_INDEX_WIDTH-1: 0] write_ptr;
+reg [`IB_INDEX_WIDTH-1: 0] read_ptr;
 
+reg [`INST_WIDTH-1: 0] inst_buffer [IB_SIZE];
 
-// both read_ptr and write_ptr have a flag bit to record whether the ptr finish a sequencial loop or not
-reg unsigned [`IB_INDEX_WIDTH-1: 0] read_ptr;
-reg unsigned [`IB_INDEX_WIDTH-1: 0] nxt_read_ptr;
-reg read_loop_flag;
+wire [`IB_INDEX_WIDTH-1: 0] wptrs [`IF_GROUP_SIZE];
+wire [`IB_INDEX_WIDTH-1: 0] rptrs [`MACHINE_WIDTH];
 
-reg unsigned [`IB_INDEX_WIDTH-1: 0] write_ptr;
-reg unsigned [`IB_INDEX_WIDTH-1: 0] nxt_write_ptr;
-reg write_loop_flag;
+reg [`IB_INDEX_WIDTH: 0] num_items;
 
-wire unsigned [`IB_INDEX_WIDTH-1: 0] rptrs [`MACHINE_WIDTH];
-wire unsigned [`IB_INDEX_WIDTH-1: 0] wptrs [`IF_GROUP_SIZE];
-generate 
-    for (genvar j = 0; j < `MACHINE_WIDTH; j += 1) begin
-        assign rptrs[j] = read_ptr + 1;
-    end 
-    for (genvar j = 0; j < `IF_GROUP_SIZE; j += 1) begin 
-        assign wptrs[j] = write_ptr + 1;
-    end 
-endgenerate
-
-// when read_ptr equals to write_ptr, there are two situations:
-// FIFO full, if read_ptr's flag is not equals to write_ptr's flag
-// FIFO empty, if write_ptr's flag is equals to read_ptr's flag
-
-wire [`IB_INDEX_WIDTH-1:0] max_read_ptr;
-wire [`IB_INDEX_WIDTH-1:0] min_read_ptr;
-wire [`IB_INDEX_WIDTH-1:0] max_write_ptr;
-wire [`IB_INDEX_WIDTH-1:0] min_write_ptr;
-
-// assign max_read_ptr = read_ptr[`MACHINE_WIDTH-1];
-assign min_read_ptr = read_ptr[0];
-// assign max_write_ptr = write_ptr[`MACHINE_WIDTH-1];
-assign min_write_ptr = write_ptr[0];
-
-// max_read_ptr almost catch up with min_write_ptr
-assign almost_empty = (read_loop_flag==write_loop_flag) && (max_read_ptr+`MACHINE_WIDTH>=min_write_ptr-1);
-// max_write_ptr almost catch up with min_read_ptr
-assign almost_full = (read_loop_flag!=write_loop_flag) && (max_write_ptr+`MACHINE_WIDTH>=min_read_ptr-1);
-
-reg [`INST_WIDTH-1: 0] reg_inst_out [`MACHINE_WIDTH];
-reg [4:0] num_valid_inst;
+assign almost_full = (num_items + `IF_GROUP_SIZE) < IB_SIZE;
+assign almost_empty = (num_items - `MACHINE_WIDTH) < 0;
 
 generate
     for (genvar j = 0; j < `MACHINE_WIDTH; j += 1) begin 
         assign inst_out[j] = reg_inst_out[j];
     end 
+    for (genvar j = 0; j < `MACHINE_WIDTH; j += 1) begin 
+        assgin rptrs[j] = (read_ptr + j) % IB_SIZE;
+    end 
+    for (genvar j = 0; j < `IF_GROUP_SIZE; j += 1) begin 
+        assign wptrs[j] = (write_ptr + j) % IB_SIZE;
+    end 
 endgenerate
 
-// write_ptr move logic
-always_comb begin 
-    
-end 
-
-// read_ptr move logic
-always_comb begin 
-
-end
-
-always_comb begin
-    for (int i = 0; i < `MACHINE_WIDTH; i += 1) begin 
-        num_valid_inst += inst_valid[i];
+always_ff @(posedge clk) begin 
+    if (reset) begin 
+        write_ptr <= `IB_INDEX_WIDTH'b0;
+        read_ptr <= `IB_INDEX_WIDTH'b0;
+        num_items <= 0;
+        for (int i = 0; i < IB_SIZE; i += 1) begin 
+            inst_buffer[i] <= `INST_WIDTH'b0;
+        end     
     end 
-end
-
-always_ff @(posedge clk) begin
-    if (reset) begin
-        read_loop_flag <= 1'b0;
-        write_loop_flag <= 1'b0;
-        for (int i = 0; i < `IF_GROUP_SIZE; i += 1) begin 
-            reg_inst_out[i] <= `INST_WIDTH'b0;
-        end
-        for (int i = 0; i < `MACHINE_WIDTH; i += 1) begin 
-
-        end
-    end
-    // Read when writing is OK, because read_ptr never insect with write ptr 
     if (read_en) begin 
-        
-
+        if (!almost_empty) begin 
+            for (int i = 0; i < `MACHINE_WIDTH; i += 1) begin
+                reg_inst_out[i] <= inst_buffer[rptrs[i]];
+            end
+            read_ptr <= (read_ptr + `MACHINE_WIDTH) % IB_SIZE;
+            num_items <= num_items - `MACHINE_WIDTH;
+        end 
     end 
     if (write_en) begin 
-        
-    end
-end
+        if (!almost_full) begin 
+            for (int i = 0; i < num_valid; i += 1) begin 
+                inst_buffer[wptrs[i]] <= inst_in[i];
+            end 
+            write_ptr <= (write_ptr + num_valid) % IB_SIZE;
+            num_items <= num_items + num_valid;
+        end 
+    end 
+    // the data read is wriiten in the last cycle at the begining
+end 
 
 endmodule
