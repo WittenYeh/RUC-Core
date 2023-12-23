@@ -6,12 +6,12 @@
 
 typedef struct {
     logic [`REG_WIDTH-1: 0] srcL_value;
-    logic [`ROB_INDEX_WIDTH-1: 0] srcL_robid;
+    logic [`ROB_INDEX_WIDTH-1: 0] srcL_robid;   // renamed ROB id
     logic srcL_valid;
     logic srcL_ready;
 
     logic [`REG_WIDTH-1: 0] srcR_value;
-    logic [`ROB_INDEX_WIDTH-1: 0] srcR_robid;
+    logic [`ROB_INDEX_WIDTH-1: 0] srcR_robid;   // renamed ROB id
     logic srcR_valid;
     logic srcR_ready;
 

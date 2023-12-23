@@ -159,10 +159,11 @@ typedef struct {
     // logic srcL_ready;
     // logic srcR_ready;
 
-    // renamed information
-    logic [`ROB_INDEX_WIDTH-1: 0] renamed_dest;
-    logic [`ROB_INDEX_WIDTH-1: 0] renamed_srcL;
-    logic [`ROB_INDEX_WIDTH-1: 0] renamed_srcR;
+    // do not need, payload RAM will tackle everything
+    // // renamed information
+    // logic [`ROB_INDEX_WIDTH-1: 0] renamed_dest;
+    // logic [`ROB_INDEX_WIDTH-1: 0] renamed_srcL;
+    // logic [`ROB_INDEX_WIDTH-1: 0] renamed_srcR;
 
     // instruction operation information
     logic shamt_valid;
