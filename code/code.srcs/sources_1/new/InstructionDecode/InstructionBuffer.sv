@@ -2,7 +2,7 @@
 `include "../InstructionFetch/IFPhaseConfig.svh"
 
 module InstructionBuffer #(
-    parameter IB_SIZE = 1000
+    parameter IB_SIZE = 2**`IB_INDEX_WIDTH
 ) (
     input wire clk,
     input wire reset,
@@ -11,8 +11,8 @@ module InstructionBuffer #(
     input wire [`IF_GROUP_SIZE-1: 0] num_valid,
     input wire [`INST_WIDTH-1: 0] inst_in [`IF_GROUP_SIZE],  
     output wire [`INST_WIDTH-1: 0] inst_out [`MACHINE_WIDTH],  
-    output wire almost_full,
-    output wire almost_empty
+    output wire fail_write,
+    output wire fail_read
 );
 
 // buffer size: 2^{10} = 1024, actually use: 1000
@@ -30,8 +30,8 @@ wire [`IB_INDEX_WIDTH-1: 0] rptrs [`MACHINE_WIDTH];
 
 reg [`IB_INDEX_WIDTH: 0] num_items;
 
-assign almost_full = (num_items + `IF_GROUP_SIZE) < IB_SIZE;
-assign almost_empty = (num_items - `MACHINE_WIDTH) < 0;
+assign fail_write = (num_items + `IF_GROUP_SIZE) < IB_SIZE;
+assign fail_read = num_items < `MACHINE_WIDTH;
 
 generate
     for (genvar j = 0; j < `MACHINE_WIDTH; j += 1) begin 
@@ -55,7 +55,7 @@ always_ff @(posedge clk) begin
         end     
     end 
     if (read_en) begin 
-        if (!almost_empty) begin 
+        if (!fail_read) begin 
             for (int i = 0; i < `MACHINE_WIDTH; i += 1) begin
                 reg_inst_out[i] <= inst_buffer[rptrs[i]];
             end
@@ -64,7 +64,7 @@ always_ff @(posedge clk) begin
         end 
     end 
     if (write_en) begin 
-        if (!almost_full) begin 
+        if (!fail_write) begin 
             for (int i = 0; i < num_valid; i += 1) begin 
                 inst_buffer[wptrs[i]] <= inst_in[i];
             end 

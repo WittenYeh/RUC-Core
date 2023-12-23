@@ -143,31 +143,55 @@ typedef enum {
 } EXT_TYPE;
 
 typedef struct {
+    // issue_type is a necessary field, each instruction should have a issue type
     IssueType issue_type; // assign the instruction to coresponding issue queue
+    
+    // origin information
     logic dest_valid;
     logic [`ARF_INDEX_WIDTH-1: 0] dest;
     logic srcL_valid;
     logic [`ARF_INDEX_WIDTH-1: 0] srcL;
     logic srcR_valid;
     logic [`ARF_INDEX_WIDTH-1: 0] srcR;
+
+    // do not need, check payload RAM can implement it
+    // // instruction source ready or not
+    // logic srcL_ready;
+    // logic srcR_ready;
+
+    // renamed information
+    logic [`ROB_INDEX_WIDTH-1: 0] renamed_dest;
+    logic [`ROB_INDEX_WIDTH-1: 0] renamed_srcL;
+    logic [`ROB_INDEX_WIDTH-1: 0] renamed_srcR;
+
+    // instruction operation information
     logic shamt_valid;
     logic [`SHAMT_WIDTH-1: 0] shamt;
     logic imm16_valid;
     logic [15: 0] imm16;
     logic imm26_valid;
     logic [25: 0] imm26; 
+
+    // which alu to use
     SIMPLE_ALU_OP salu_op;
     COMPLEX_ALU_OP calu_op;
-    logic slt_trans;
-    SHIFT_TYPE shift_type;
-    logic need_log; // whether a jump instruction need to log its PC+8
-    MOVE_TYPE move_type;
-    logic is_direct_branch;
-    logic check_exp; // not used now
-    COMPARE_TYPE comp_type;
-    LOAD_SIZE load_size;
-    EXT_TYPE ext_type;
-    MEM_TYPE mem_type;
+    
+    logic slt_trans;            // whether need to transfer the ALU result to satisfy slt rule
+    SHIFT_TYPE shift_type;    // the type of shift operation
+    logic need_log;            // whether a jump instruction need to log its PC+8
+    MOVE_TYPE move_type;   // the type of move operation
+    
+    logic is_direct_branch;     // is the instruction a direct branch
+    COMPARE_TYPE comp_type;    // compare operation type of a branch instruction
+
+    logic check_exception;          // whether to check exception or not, not used now
+    
+    LOAD_SIZE load_size;      // the size to load
+    EXT_TYPE ext_type;       // extend type after loading 
+    MEM_TYPE mem_type;     // reg2mem or mem2reg
+
+    logic [`ROB_INDEX_WIDTH-1: 0] order;   // to indicate the order of issue
+    logic [`ROB_INDEX_WIDTH-1: 0] rob_id;  // where the instruction is stored in the ROB
 } InstructionInfo;
 
 `endif

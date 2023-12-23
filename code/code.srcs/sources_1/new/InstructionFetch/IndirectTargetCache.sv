@@ -1,13 +1,13 @@
 `include "IFPhaseConfig.svh"
-`include "../Commit/CPhaseConfig.svh"
+`include "../Commit/CommitPhaseConfig.svh"
 
 module IndirectTartgetCache(
     input wire clk, 
     input wire reset,
-    input wire enupdate [`COMMIT_SIZE],
+    input wire enupdate [`COMMIT_WIDTH],
     input wire [`ITC_INDEX_WIDTH-1: 0] read_index [`IF_GROUP_SIZE],
-    input wire [`ITC_INDEX_WIDTH-1: 0] write_index [`COMMIT_SIZE], 
-    input wire [`INST_ADDR_WIDTH-1: 0] addr_in [`COMMIT_SIZE],
+    input wire [`ITC_INDEX_WIDTH-1: 0] write_index [`COMMIT_WIDTH], 
+    input wire [`INST_ADDR_WIDTH-1: 0] addr_in [`COMMIT_WIDTH],
     output wire [`INST_ADDR_WIDTH-1: 0] addr_out [`IF_GROUP_SIZE]
 );
 
@@ -30,7 +30,7 @@ always_ff @(posedge clk) begin
         end 
     end 
     else begin 
-        for (int i = 0; i < `COMMIT_SIZE; i += 1) begin 
+        for (int i = 0; i < `COMMIT_WIDTH; i += 1) begin 
             if (enupdate[i]) begin 
                 indirect_target[write_index[i]] <= addr_in[i];
             end

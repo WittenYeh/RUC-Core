@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 `include "IFPhaseConfig.svh"
-`include "../Commit/CPhaseConfig.svh"
+`include "../Commit/CommitPhaseConfig.svh"
 
 /*
  * in- Branch History Table:
@@ -35,7 +35,7 @@ module BranchHistoryTable(
     input wire enupdate, // all commited instructions update at the same time 
     input wire isbranch [`IF_GROUP_SIZE],
     input wire [`BHT_INDEX_WIDTH-1: 0] read_index [`IF_GROUP_SIZE],
-    input wire [`BHT_INDEX_WIDTH-1: 0] write_index [`COMMIT_SIZE],
+    input wire [`BHT_INDEX_WIDTH-1: 0] write_index [`COMMIT_WIDTH],
     output wire [`PATTERN_WIDTH-1:0] pattern [`IF_GROUP_SIZE]
 );
 
@@ -55,7 +55,7 @@ always_ff @(negedge clk) begin
         end
     end
     else if (enupdate) begin
-        for (int i = 0; i < `COMMIT_SIZE; i += 1) begin 
+        for (int i = 0; i < `COMMIT_WIDTH; i += 1) begin 
             patterns_table[write_index[i]][`PATTERN_WIDTH-2: 0] <= patterns_table[write_index[i]][`PATTERN_WIDTH-2:0];
             patterns_table[write_index[i]][`PATTERN_WIDTH-1] <= isbranch[i];
         end
