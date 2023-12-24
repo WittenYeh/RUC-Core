@@ -20,6 +20,7 @@ always_comb begin
         instruction_info[i].slt_trans = 1'b0;
         instruction_info[i].need_log = 1'b0;
         instruction_info[i].is_direct_branch = 1'b0;
+        instruciton_info[i].is_cond_branch = 1'b0;
 
         case (instruction[i][31: 26])
             // R type instructions ================================
@@ -38,7 +39,7 @@ always_comb begin
                         instruction_info[i].srcR = instruction[i][20: 16];
                         instruction_info[i].dest_valid = 1'b1;
                         instruction_info[i].dest = instruction[i][15:11];
-                        instruction_info[i].issue_type = SIMPLE_ALU;
+                        instruction_info[i].op_type = SIMPLE_ALU;
                         // the least three bits decide computing type
                         // ADD, ADDU
                         if (instruction[i][2:0]==3'b000 || instruction[i][2:0]==3'b001) begin 
@@ -73,7 +74,7 @@ always_comb begin
                         instruction_info[i].srcL = instruction[i][25: 21];
                         instruction_info[i].srcR_valid = 1'b1;
                         instruction_info[i].srcR = instruction[i][20: 16];
-                        instruction_info[i].issue_type = COMPLEX_ALU;
+                        instruction_info[i].op_type = COMPLEX_ALU;
                         if (instruction[i][1] == 1'b1) begin // DIV, DIVU   
                             instruction_info[i].calu_op = ALU_DIV;
                         end 
@@ -94,7 +95,7 @@ always_comb begin
                         instruction_info[i].dest = instruction[i][15:11];
                         instruction_info[i].shamt_valid = ~instruction[i][2];
                         instruction_info[i].shamt = instruction[i][10:6];
-                        instruction_info[i].issue_type = SHIFT;
+                        instruction_info[i].op_type = SHIFT;
                         if (instruction[i][1:0] == 2'b00) begin // SLLV, SLL 
                             instruction_info[i].shift_type = LEFT;
                         end 
@@ -113,7 +114,7 @@ always_comb begin
                         instruction_info[i].dest_valid = instruction[i][0];
                         instruction_info[i].dest = instruction[i][15:11];
                         instruction_info[i].need_log = instruction[i][0]; // JALR
-                        instruction_info[i].issue_type = BRANCH;
+                        instruction_info[i].op_type = BRANCH;
                         instruction_info[i].is_direct_branch = 1'b1;
                     end 
                     // instructions executed with coprocess function unit
@@ -123,7 +124,7 @@ always_comb begin
                         instruction_info[i].srcL = instruction[i][25: 21];
                         instruction_info[i].dest_valid = ~instruction[i][0];
                         instruction_info[i].dest = instruction[i][15:11];
-                        nstruction_info[i].issue_type = MOVE;
+                        nstruction_info[i].op_type = MOVE;
                         case (instruction[i][1:0])
                             2'b00: instruction_info[i].move_type = HI2REG;
                             2'b01: instruction_info[i].move_type = REG2HI;
@@ -133,7 +134,7 @@ always_comb begin
                     end 
                     // syscall
                     6'b001100: begin 
-                        instruction_info[i].issue_type = FINISH;
+                        instruction_info[i].op_type = FINISH;
                     end 
                 endcase
             end
@@ -147,7 +148,7 @@ always_comb begin
                 instruction_info[i].imm16 = instruction[i][15:0];
                 instruction_info[i].dest_valid = 1'b1;
                 instruction_info[i].dest = instruction[i][20: 16];
-                instruction_info[i].issue_type = SIMPLE_ALU;
+                instruction_info[i].op_type = SIMPLE_ALU;
                 case (instruction[i][29:26])
                     4'b1000, 4'b1001: begin 
                         instruction_info[i].salu_op = ALU_ADD;
@@ -174,11 +175,11 @@ always_comb begin
                 instruction_info[i].dest_valid = 1'b1;
                 instruction_info[i].dest = instruction[i][20:16];
                 instruction_info[i].salu_op = ALU_OR;
-                instruction_info[i].issue_type = SIMPLE_ALU;
+                instruction_info[i].op_type = SIMPLE_ALU;
             end 
             // instructions executed with conditional branch function unit
             // two operands instruction: 
-            // BEQ, BNE, defautly, subtraction operation
+            // BEQ, BNE, defautly, use subtraction operation
             6'b000100, 6'b000101: begin 
                 instruction_info[i].srcL_valid = 1'b1;
                 instruction_info[i].srcL = instruction[i][25: 21];
@@ -186,7 +187,8 @@ always_comb begin
                 instruction_info[i].srcR = instruction[i][20: 16];
                 instruction_info[i].imm16_valid = 1'b1;
                 instruction_info[i].imm16 = instruction[i][15: 0];
-                instruction_info[i].issue_type = BRANCH;
+                instruction_info[i].op_type = BRANCH;
+                instruciton_info[i].is_cond_branch = 1'b1;
                 if (instruction[i][26]) begin
                     instruction_info[i].comp_type = NE;
                 end 
@@ -201,7 +203,8 @@ always_comb begin
                 instruction_info[i].srcL = instruction[i][25: 21];
                 instruction_info[i].imm16_valid = 1'b1;
                 instruction_info[i].imm16 = instruction[i][15:0];
-                instruction_info[i].issue_type = BRANCH;
+                instruction_info[i].op_type = BRANCH;
+                instruciton_info[i].is_cond_branch = 1'b1;
                 if (instruction[i][16]) begin 
                     instruction_info[i].comp_type = GEZ;
                 end 
@@ -215,7 +218,8 @@ always_comb begin
                 instruction_info[i].srcL = instruction[i][25: 21];
                 instruction_info[i].imm16_valid = 1'b1;
                 instruction_info[i].imm16 = instruction[i][15:0];
-                instruction_info[i].issue_type = BRANCH;
+                instruction_info[i].op_type = BRANCH;
+                instruciton_info[i].is_cond_branch = 1'b1;
                 if (instruction[i][26]) begin 
                     instruction_info[i].comp_type = GTZ;
                 end
@@ -230,7 +234,8 @@ always_comb begin
                 instruction_info[i].imm16_valid = 1'b1;
                 instruction_info[i].imm16 = instruction[i][15:0];
                 instruction_info[i].need_log = 1'b1;
-                instruction_info[i].issue_type = BRANCH;
+                instruction_info[i].op_type = BRANCH;
+                instruciton_info[i].is_cond_branch = 1'b1;
                 if (instruction[i][16]) begin 
                     instruction_info[i].comp_type = GEZ;
                 end
@@ -248,7 +253,7 @@ always_comb begin
                 instruction_info[i].dest_valid = 1'b1;
                 instruction_info[i].dest = instruction[i][20:16];
                 instruction_info[i].mem_type = MEM2REG;
-                instruction_info[i].issue_type = MEMORY;
+                instruction_info[i].op_type = MEMORY;
                 case (instruction[i][27:26])
                     2'b00: instruction_info[i].load_size = BYTE; 
                     2'b01: instruction_info[i].load_size = HEX;
@@ -272,20 +277,21 @@ always_comb begin
                 instruction_info[i].srcR_valid = 1'b1;
                 instruction_info[i].srcR = instruction[i][20:16];
                 instruction_info[i].mem_type = REG2MEM;
-                instruction_info[i].issue_type = MEMORY;
+                instruction_info[i].op_type = MEMORY;
                 case (instruction[i][27:26])
                     2'b00: instruction_info[i].load_size = BYTE; 
                     2'b01: instruction_info[i].load_size = HEX;
                     2'b11: instruction_info[i].load_size = WORD;
                 endcase
             end 
+            // J type instructions ================================ 
             // J, JAL
             6'b000010, 6'b000011: begin 
                 instruction_info[i].imm26_valid = 1'b1;
                 instruction_info[i].imm26 = instruction[i][25: 0];
                 instruction_info[i].need_log = instruction[i][26];
                 instruction_info[i].is_direct_branch = 1'b1;
-                instruction_info[i].issue_type = BRANCH;
+                instruction_info[i].op_type = BRANCH;
             end 
         endcase
     end

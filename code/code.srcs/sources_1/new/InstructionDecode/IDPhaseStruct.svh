@@ -6,14 +6,16 @@
 
 typedef enum {
     // Corrsponding to each issue queue (except syscall)
+    
+    // use one issue queue, 4 executor
     SIMPLE_ALU,
-    COMPLEX_ALU,
     SHIFT,
+    COMPLEX_ALU,
     BRANCH,
     MEMORY,
     MOVE,
     FINISH
-} IssueType;
+} OpType;
 
 typedef enum {
     // R type
@@ -143,8 +145,8 @@ typedef enum {
 } EXT_TYPE;
 
 typedef struct {
-    // issue_type is a necessary field, each instruction should have a issue type
-    IssueType issue_type; // assign the instruction to coresponding issue queue
+    // op_type is a necessary field, each instruction should have a issue type
+    OpType op_type; // assign the instruction to coresponding issue queue
     
     // origin information
     logic dest_valid;
@@ -179,10 +181,13 @@ typedef struct {
     
     logic slt_trans;            // whether need to transfer the ALU result to satisfy slt rule
     SHIFT_TYPE shift_type;    // the type of shift operation
+    
     logic need_log;            // whether a jump instruction need to log its PC+8
+    logic is_direct_branch;     // is the instruction a direct branch (JAL or J)
+    logic is_cond_branch;
+
     MOVE_TYPE move_type;   // the type of move operation
     
-    logic is_direct_branch;     // is the instruction a direct branch
     COMPARE_TYPE comp_type;    // compare operation type of a branch instruction
 
     logic check_exception;          // whether to check exception or not, not used now
