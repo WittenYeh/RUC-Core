@@ -7,13 +7,20 @@
 typedef enum {
     // Corrsponding to each issue queue (except syscall)
     
-    // use one issue queue, 4 executor
+    // implemented by simple ALU, use one issue queue, 4 executor
     SIMPLE_ALU,
     SHIFT,
-    COMPLEX_ALU,
-    BRANCH,
-    MEMORY,
     MOVE,
+    
+    // implemented by complex ALU, use one issue queue, 1 executor
+    COMPLEX_ALU,
+
+    // implemented by branch unit, use one issue queue, 1 executor
+    BRANCH,
+
+    // implemented by memory unit, use one issue queue, 2 executor
+    MEMORY,
+
     FINISH
 } OpType;
 
@@ -161,11 +168,10 @@ typedef struct {
     // logic srcL_ready;
     // logic srcR_ready;
 
-    // do not need, payload RAM will tackle everything
     // // renamed information
     // logic [`ROB_INDEX_WIDTH-1: 0] renamed_dest;
-    // logic [`ROB_INDEX_WIDTH-1: 0] renamed_srcL;
-    // logic [`ROB_INDEX_WIDTH-1: 0] renamed_srcR;
+    logic [`ROB_INDEX_WIDTH-1: 0] renamed_srcL;
+    logic [`ROB_INDEX_WIDTH-1: 0] renamed_srcR;
 
     // instruction operation information
     logic shamt_valid;
@@ -196,7 +202,7 @@ typedef struct {
     EXT_TYPE ext_type;       // extend type after loading 
     MEM_TYPE mem_type;     // reg2mem or mem2reg
 
-    logic [`ROB_INDEX_WIDTH-1: 0] order;   // to indicate the order of issue
+    // logic [`ROB_INDEX_WIDTH-1: 0] order;   // to indicate the order of issue
     logic [`ROB_INDEX_WIDTH-1: 0] rob_id;  // where the instruction is stored in the ROB
 } InstructionInfo;
 

@@ -21,7 +21,8 @@ module PayloadRAM #(
     input wire [`REG_WIDTH-1: 0] bypass_bus_value [`ISSUE_WIDTH],         // the corresponding value broadcast by bypass network
     input wire bypass_bus_valid [`ISSUE_WIDTH],    // whether bypass bus is useful or not 
     
-    output wire ready_signal [PR_SIZE],            // to indicate whether the source of this instruction is ready
+    output wire srcL_ready [PR_SIZE],            // to indicate whether the source of this instruction is ready
+    output wire srcR_ready [PR_SIZE],
     output PayloadEntry entry_out [`ISSUE_WIDTH] // when reading by 
 );
     
@@ -29,7 +30,8 @@ PayloadEntry entries [PR_SIZE];
 
 generate
     for (genvar i = 0; i < PR_SIZE; i += 1) begin 
-        assign ready_signal[i] = entries[i].srcR_ready && entries[i].srcL_ready;
+        assign srcL_ready[i] = entries[i].srcL_ready;
+        assign srcR_ready[i] = entries[i].srcR_ready;
     end 
 endgenerate
 
@@ -71,7 +73,7 @@ always_ff @(negedge clock) begin
                     // to check whether the ROB id match the source register
                     // discuss left src
                     if ( entries[j].occurpied && 
-                        entries[j].srcL_valid &&
+                        // entries[j].srcL_valid &&
                         entries[j].srcL_robid == bypass_bus_robid[i]
                     ) begin 
                         entries[j].srcL_value = bypass_bus_value[i];
@@ -79,7 +81,7 @@ always_ff @(negedge clock) begin
                     end 
                     // discuss right src
                     if ( entries[j].occurpied && 
-                        entries[j].srcR_valid &&
+                        // entries[j].srcR_valid &&
                         entries[j].srcR_robid == bypass_bus_robid[i]
                     ) begin 
                         entries[j].srcR_value = bypass_bus_value[i];

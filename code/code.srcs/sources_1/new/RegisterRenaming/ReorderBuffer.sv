@@ -37,8 +37,8 @@ reg [`ROB_INDEX_WIDTH: 0] num_items;     // number of instructions in ROB
 reg [`ROB_INDEX_WIDTH: 0] num_undispatched;   // number of instructions waiting to be sent to issue queue
 reg [`ROB_INDEX_WIDTH: 0] num_executed;   // number of instructions that is executed
 
-reg [`ROB_INDEX_WIDTH: 0] actual_dispatch;
-reg [`ROB_INDEX_WIDTH: 0] actual_commit;
+// reg [`ROB_INDEX_WIDTH: 0] actual_dispatch;
+// reg [`ROB_INDEX_WIDTH: 0] actual_commit;
 
 reg [`ROB_INDEX_WIDTH-1: 0] write_ptr;  
 reg [`ROB_INDEX_WIDTH-1: 0] commit_ptr;
@@ -134,7 +134,10 @@ always_ff @(posedge clk) begin
             entries[wptrs[i]].dispatched <= 1'b0;
             entries[wptrs[i]].executed <= 1'b0;
             entries[wptrs[i]].inst_info.rob_id <= entries[i].rob_id; 
+            entries[wptrs[i]].inst_info.renamed_srcL = renamed_srcL[i];
+            entries[wptrs[i]].inst_info.renamed_srcR = renamed_srcR[i];
         end 
+        
         write_ptr <= (write_ptr + `MACHINE_WIDTH) % ROB_SIZE;
         
         // write to payload (stabilize in-port in first half cycle)
