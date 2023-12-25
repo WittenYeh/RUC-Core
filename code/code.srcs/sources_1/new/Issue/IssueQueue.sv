@@ -130,6 +130,8 @@ always_ff @(posedge clock) begin
     num_items <= num_items + write_en*actual_write - issue_en*actual_issue;
 end
 
+// bc_srcL_ready 和 pr_srcL_ready 不可能同时为 1，对于 srcR 同理
+
 // wake up logic
 always_ff @(negedge clock) begin
     // wake up by wakeup broadcast

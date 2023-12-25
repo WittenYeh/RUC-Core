@@ -115,7 +115,7 @@ always_comb begin
                         instruction_info[i].dest = instruction[i][15:11];
                         instruction_info[i].need_log = instruction[i][0]; // JALR
                         instruction_info[i].op_type = BRANCH;
-                        instruction_info[i].is_direct_branch = 1'b1;
+                        // instruction_info[i].is_direct_branch = 1'b1;
                     end 
                     // instructions executed with coprocess function unit
                     // MFHI, MTHI, MFLO, MTLO

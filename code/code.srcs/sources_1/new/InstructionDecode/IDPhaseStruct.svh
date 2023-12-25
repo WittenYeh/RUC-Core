@@ -3,6 +3,7 @@
 
 `include "./IDPhaseConfig.svh"
 `include "../RegisterRenaming/RRPhaseConfig.svh"
+`include "../InstructionFetch/IFPhaseConfig.svh"
 
 typedef enum {
     // Corrsponding to each issue queue (except syscall)
@@ -152,10 +153,20 @@ typedef enum {
 } EXT_TYPE;
 
 typedef struct {
-    // op_type is a necessary field, each instruction should have a issue type
-    OpType op_type; // assign the instruction to coresponding issue queue
+
+    // for debug
+
+    /* 
+     * op_type 是必选字段
+     * 每个指令都需要根据 op_type 以正确地分配到相应的发射队列中
+     */
+    OpType op_type; 
     
-    // origin information
+
+    // 指令对应的 pc 值
+    logic [`INST_ADDR_WIDTH-1: 0] pc_value;
+
+    // 指令解码出的原始信息
     logic dest_valid;
     logic [`ARF_INDEX_WIDTH-1: 0] dest;
     logic srcL_valid;
@@ -163,12 +174,16 @@ typedef struct {
     logic srcR_valid;
     logic [`ARF_INDEX_WIDTH-1: 0] srcR;
 
+    // 操作数来自 payload RAM 还是 broadcast（旁路广播）
+    logic srcL_from_pr_or_bc;
+    logic srcR_from_pr_or_bc;
+
     // do not need, check payload RAM can implement it
     // // instruction source ready or not
     // logic srcL_ready;
     // logic srcR_ready;
 
-    // // renamed information
+    // 寄存器重命名结果
     // logic [`ROB_INDEX_WIDTH-1: 0] renamed_dest;
     logic [`ROB_INDEX_WIDTH-1: 0] renamed_srcL;
     logic [`ROB_INDEX_WIDTH-1: 0] renamed_srcR;
@@ -191,6 +206,8 @@ typedef struct {
     logic need_log;            // whether a jump instruction need to log its PC+8
     logic is_direct_branch;     // is the instruction a direct branch (JAL or J)
     logic is_cond_branch;
+    logic pred_branch;          // predict whether to branch
+    logic [`INST_ADDR_WIDTH-1: 0] pred_addr; // predict branch type
 
     MOVE_TYPE move_type;   // the type of move operation
     

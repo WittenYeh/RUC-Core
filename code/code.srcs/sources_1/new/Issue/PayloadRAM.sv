@@ -23,7 +23,7 @@ module PayloadRAM #(
     
     output wire srcL_ready [PR_SIZE],            // to indicate whether the source of this instruction is ready
     output wire srcR_ready [PR_SIZE],
-    output PayloadEntry entry_out [`ISSUE_WIDTH] // when reading by 
+    output PayloadEntry entry_out [`ISSUE_WIDTH] // when reading by executing phase
 );
     
 PayloadEntry entries [PR_SIZE];
