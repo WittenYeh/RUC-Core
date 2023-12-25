@@ -161,10 +161,11 @@ typedef struct {
      * 每个指令都需要根据 op_type 以正确地分配到相应的发射队列中
      */
     OpType op_type; 
-    
 
     // 指令对应的 pc 值
     logic [`INST_ADDR_WIDTH-1: 0] pc_value;
+    // 下一次顺序取码的 pc 值（同一批指令应该一致）
+    logic [`INST_ADDR_WIDTH-1: 0] seq_pc;
 
     // 指令解码出的原始信息
     logic dest_valid;
@@ -188,7 +189,7 @@ typedef struct {
     logic [`ROB_INDEX_WIDTH-1: 0] renamed_srcL;
     logic [`ROB_INDEX_WIDTH-1: 0] renamed_srcR;
 
-    // instruction operation information
+    // 指令原始解码信息
     logic shamt_valid;
     logic [`SHAMT_WIDTH-1: 0] shamt;
     logic imm16_valid;
@@ -196,7 +197,7 @@ typedef struct {
     logic imm26_valid;
     logic [25: 0] imm26; 
 
-    // which alu to use
+    // 使用哪个 ALU（complex or simple）
     SIMPLE_ALU_OP salu_op;
     COMPLEX_ALU_OP calu_op;
     

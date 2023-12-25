@@ -15,11 +15,12 @@ module IssueQueue #(
     input InstructionInfo inst_info_in [`DISPATCH_WIDTH],
     input wire write_en,
     input wire issue_en,
+    input wire wakeup_en, // 更新唤醒状态
     input wire pr_srcL_ready [2**`ROB_INDEX_WIDTH],
     input wire pr_srcR_ready [2**`ROB_INDEX_WIDTH],
     input IssueBroadcast broadcast_in [`ISSUE_WIDTH],
-    output InstructionInfo inst_info_out [OUTPUT_WIDTH],
-    output reg inst_valid_out [OUTPUT_WIDTH],
+    output IQEntry entry_out [OUTPUT_WIDTH],
+    output reg valid_out [OUTPUT_WIDTH],
     output IssueBroadcast broadcast_out [OUTPUT_WIDTH],
     output wire fail_issue
 );
@@ -94,8 +95,8 @@ always_ff @(posedge clock) begin
         // assign instructions to output broadcast port
         for (int i = 0; i < OUTPUT_WIDTH; i += 1) begin 
             if (i < actual_issue) begin 
-                inst_info_out[i] <= entries[issue_pos[i]].inst_info;
-                inst_valid_out[i] <= 1'b1;
+                entry_out[i] <= entries[issue_pos[i]];
+                valid_out[i] <= 1'b1;
                 if (entries[issue_pos[i]].inst_info.dest_valid) begin 
                     broadcast_out[i].valid <= 1'b1;
                     broadcast_out[i].rd_robid <= entries[issue_pos[i]].inst_info.rob_id;
@@ -105,7 +106,7 @@ always_ff @(posedge clock) begin
                 end 
             end
             else begin
-                inst_valid_out[i] <= 1'b0;
+                valid_out[i] <= 1'b0;
                 broadcast_out[i].valid <= 1'b0;
             end
         end 
@@ -135,22 +136,24 @@ end
 // wake up logic
 always_ff @(negedge clock) begin
     // wake up by wakeup broadcast
-    for (int i = 0; i < `ISSUE_WIDTH; i += 1) begin
-        for (int j = 0; j < num_items; j += 1) begin 
-            if (broadcast_in[i].valid) begin 
-                if (entries[j].inst_info.renamed_srcL == broadcast_in[i].rd_robid) begin 
-                    entries[j].bc_srcL_ready <= 1'b1;    
+    if (wakeup_en) begin 
+        for (int i = 0; i < `ISSUE_WIDTH; i += 1) begin
+            for (int j = 0; j < num_items; j += 1) begin 
+                if (broadcast_in[i].valid) begin 
+                    if (entries[j].inst_info.renamed_srcL == broadcast_in[i].rd_robid) begin 
+                        entries[j].bc_srcL_ready <= 1'b1;  
+                    end 
+                    if (entries[j].inst_info.renamed_srcR == broadcast_in[i].rd_robid) begin 
+                        entries[j].bc_srcR_ready <= 1'b1;
+                    end
                 end 
-                if (entries[j].inst_info.renamed_srcR == broadcast_in[i].rd_robid) begin 
-                    entries[j].bc_srcR_ready <= 1'b1;
-                end
             end 
         end 
-    end 
-    // wake up by payload ready signal
-    for (int i = 0; i < 2**`ROB_INDEX_WIDTH; i += 1) begin 
-        entries[i].pr_srcL_ready = pr_srcL_ready[i];
-        entries[i].pr_srcR_ready = pr_srcR_ready[i];
+        // wake up by payload ready signal
+        for (int i = 0; i < 2**`ROB_INDEX_WIDTH; i += 1) begin 
+            entries[i].pr_srcL_ready = pr_srcL_ready[i];
+            entries[i].pr_srcR_ready = pr_srcR_ready[i];
+        end 
     end 
 end
 
