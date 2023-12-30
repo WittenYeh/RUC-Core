@@ -126,13 +126,6 @@ always_comb begin
     end
 end 
 
-/*
- * MOVE 指令分配单元：实现基于 ROB 的 MOVE 指令分配机制
- * 需要考虑两种情况:
- * case 1: 上一条乘法指令已经提交或者位于 ROB 中
-    * 不论是已经提交或者是在 
- */
-
 always_ff @(posedge clk) begin
     if (reset) begin 
         num_items <= 0;
