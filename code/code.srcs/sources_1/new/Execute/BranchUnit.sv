@@ -4,7 +4,8 @@
 `include "../Issue/IssuePhaseStruct.svh"
 `include "../Issue/IssuePhaseConfig.svh"
 
-// the main funtion of the branch unit is to verify whether the predicted result is right
+// Branch Unit 的主要功能就是验证分支指令是否正确执行
+// 如果执行错误， mispred 值为 1，转交给错误恢复处理器调遣
 module BranchUnit #(
     
 ) (
@@ -161,6 +162,9 @@ always_comb begin
         reg_write_back = 1'b1;
         reg_result = iq_entry.inst_info.pc_value + 8;
         reg_wb_robid = iq_entry.inst_info.rob_id;
+    end 
+    else begin // 否则不需要写回也不需要广播 
+        reg_write_back = 1'b0;
     end 
 end
 

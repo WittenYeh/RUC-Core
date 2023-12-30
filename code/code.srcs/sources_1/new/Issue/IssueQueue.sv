@@ -3,6 +3,23 @@
 `include "./IssuePhaseStruct.svh"
 `include "./IssuePhaseConfig.svh"
 
+/*
+ * 四种不同的发射队列应该采用不同的结构，因为乱序执行的程度不一样
+ * SimpleALU 指令对应的发射队列采用完全乱序执行
+ * Branch 指令对应的发射队列采用顺序执行
+    * 因为分支预测错误会导致后面所有的指令都处于错误路径上
+    * 顺序执行是比较保守的规避错误的方式
+ * Memory 指令对应的发射队列采用部分乱序执行
+    * 所有 store 指令都必须顺序执行来确保存储器的正确性
+    * 两条 store 指令之间的 load 指令可以乱序执行
+    * store 指令必须写到内存才能被 load 指令读取
+    * 因此在周期 T，一条 store 指令执行以后
+    * 在 T+1 周期，程序中原始顺序这这条 store 指令后的所有 load 指令都可以被执行
+ * ComplexALU 指令对应的发射队列采用完全乱序执行
+    * 乘法指令可以分配到两个 ALU 上并行执行
+    * MOVE 指令分配到对应 ComplexALU 上执行
+ */
+
 // Cluster Framework
 module IssueQueue #(
     parameter OUTPUT_WIDTH = 2,

@@ -33,13 +33,14 @@ always_comb begin
     reg_num_mem_inst = 0;
     for (int i = 0; i < `DISPATCH_WIDTH; i += 1) begin 
         if ( inst_info_in[i].op_type == SIMPLE_ALU ||
-            inst_info_in[i].op_type == SHIFT ||
-            inst_info_in[i].op_type == MOVE
+            inst_info_in[i].op_type == SHIFT
         ) begin
             salu_queue[reg_num_salu_inst] = inst_info_in[i];
             reg_num_salu_inst += 1;
         end
-        else if (inst_info_in[i].op_type == COMPLEX_ALU) begin 
+        else if ( inst_info_in[i].op_type == COMPLEX_ALU || 
+                inst_info_in[i].op_type == MOVE
+        ) begin 
             calu_queue[reg_num_calu_inst] = inst_info_in[i];
             reg_num_calu_inst += 1;
         end 
@@ -48,7 +49,7 @@ always_comb begin
             reg_num_branch_inst += 1;
         end 
         else if (inst_info_in[i].op_type == MEMORY) begin 
-            branch_queue[reg_num_mem_inst] = inst_info_in[i];
+            mem_queue[reg_num_mem_inst] = inst_info_in[i];
             reg_num_mem_inst += 1;
         end 
         else if (inst_info_in[i].op_type == FINISH) begin 

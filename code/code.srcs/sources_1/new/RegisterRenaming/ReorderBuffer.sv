@@ -15,6 +15,8 @@ module ReorderBuffer #(
     input wire write_en,
     input wire update_en,  // to update the state of instructions in the ROB(executed or not)
     input wire commit_en,
+
+    // 指令编排顺序：下标越小代表在程序中原始顺序越早执行
     input InstructionInfo inst_info_in [`MACHINE_WIDTH],
     input wire [`ROB_INDEX_WIDTH-1: 0] executed_bus_addr [`ISSUE_WIDTH],
     input wire [`ROB_INDEX_WIDTH-1: 0] executed_bus_value [`ISSUE_WIDTH],
@@ -68,15 +70,27 @@ endgenerate
 // status 2: In issue queue but will not issue in next cycle (by payloadRAM)
 // status 3: In executed phase (by payloadRAM)
 
+/* 
+ * 寄存器重命名逻辑单元：实现基于 ROB 的寄存器重命名
+ * 需要考虑两种情况：
+ * case 1: 源寄存器对应的源指令在该周期前已经存储到 ROB 中
+    * 从 ROB 的所有已写单元接收目标地址广播
+    * 选择最近的源指令
+ * case 2: 源寄存器对应的源指令在该周期完成 ROB 写入
+    * 从同周期且早于自身的指令接收目标地址广播
+    * 选择最近的源指令
+ * 如果 case 1 和 case 2 都能找到源指令，那就优先选择 case 2 中源指令，因为 case 2 到来的时间比 case 1 晚
+ */
+// TODO: 检测一下这个寄存器重命名单元能不能用
+
 reg [`ROB_INDEX_WIDTH-1: 0] renamed_srcL [`MACHINE_WIDTH];
 reg [`ROB_INDEX_WIDTH-1: 0] renamed_srcR [`MACHINE_WIDTH];
 
-// renaming logic
-// TODO: this sheet of code is ungeneratable
 // not sure can be simulated or not
 always_comb begin 
     for (int i = 0; i < `MACHINE_WIDTH; i += 1) begin 
         // broadcast to all entries
+        
         // discuss the entries before current cycle 
         for (int j = commit_ptr; j != write_ptr; j=(j+1)%ROB_SIZE) begin 
             if (entries[j].inst_info.dest_valid) begin 
@@ -92,6 +106,7 @@ always_comb begin
                 end 
             end    
         end     
+        
         // discuss the entries in current cycle
         for (int j = 0; j < i; j += 1) begin 
             // the bigger j, the newer instruction
@@ -110,6 +125,13 @@ always_comb begin
         end 
     end
 end 
+
+/*
+ * MOVE 指令分配单元：实现基于 ROB 的 MOVE 指令分配机制
+ * 需要考虑两种情况:
+ * case 1: 上一条乘法指令已经提交或者位于 ROB 中
+    * 不论是已经提交或者是在 
+ */
 
 always_ff @(posedge clk) begin
     if (reset) begin 
